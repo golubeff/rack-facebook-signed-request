@@ -26,7 +26,7 @@ module Rack
         unless signed_request.nil?
           signature, signed_params = signed_request.split('.')
 
-          unless signed_request_is_valid?(secret, signature, signed_params)
+          unless signed_request_is_valid?(secret, signature, signed_params, request.params['api_id'])
             return Rack::Response.new(["Invalid signature"], 400).finish
           end
 
@@ -42,9 +42,9 @@ module Rack
 
       private
 
-        def signed_request_is_valid?(secret, signature, params)
+        def signed_request_is_valid?(secret, signature, params, api_id)
           signature = base64_url_decode(signature)
-          expected_signature = OpenSSL::HMAC.digest('SHA256', secret, params.tr("-_", "+/"))
+          expected_signature = OpenSSL::HMAC.digest('SHA256', secret[api_id.to_i], params.tr("-_", "+/"))
           return signature == expected_signature
         end
 
